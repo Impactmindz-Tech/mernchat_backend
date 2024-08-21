@@ -3,6 +3,7 @@ const cors = require("cors");
 const { connectDB } = require("./db/config");
 const Users = require("./models/Users");
 const bcryptjs = require("bcryptjs");
+const Conversation = require("./models/conversation");
 
 const app = express();
 const port = (process.env.PORT = 8000);
@@ -64,6 +65,27 @@ app.post("/api/login", async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).send("Server error");
+  }
+});
+
+app.post("/api/conversation", async (req, res) => {
+  try {
+    const { senderId, receiverId } = req.body;
+    const newConversation = new Conversation({ members: [senderId, receiverId] });
+    await newConversation.save();
+    res.status(200).send("conversation created successfully");
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/api/conversation/:userId", async (req, res) => {
+  try {
+    const userId = req.params?.userId;
+    const conversation = await Conversation.find({ members: { $in: [userId] } });
+    res.status(200).json(conversation);
+  } catch (error) {
+    console.log(error);
   }
 });
 
